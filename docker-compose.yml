@@ -1,0 +1,58 @@
+# version: '3.9'
+
+services:
+  nginx:
+    container_name: nginx-container
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src/laravel-eshop:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+    depends_on:
+      - app
+      - db
+    networks:
+        - local-network
+
+  db:
+    container_name: mysql-container
+    image: mysql:latest
+    ports:
+      - "4306:3306"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: my_shop_db
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+        - local-network
+
+  phpmyadmin:
+    container_name: phpmyadmin-container
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 3400:80
+    depends_on:
+      - db
+    networks:
+        - local-network
+
+  app:
+      container_name: my-eshop-container
+      build:
+        context: ./docker/php
+        dockerfile: Dockerfile
+      volumes:
+        - ./src/laravel-eshop:/var/www
+      ports:
+        - "9000:9000"
+      working_dir: /var/www
+      depends_on:
+        - db
+      networks:
+          - local-network
+
+networks:
+    local-network:
+
